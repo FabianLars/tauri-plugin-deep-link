@@ -19,7 +19,7 @@ pub use macos::*;
 
 mod shared;
 
-pub fn prepare(identifier: &str) -> Result<(), std::io::Error> {
+pub fn prepare(identifier: &str) {
     if let Ok(mut conn) = LocalSocketStream::connect(identifier) {
         if let Err(io_err) = conn.write_all(std::env::args().nth(1).unwrap_or_default().as_bytes())
         {
@@ -28,8 +28,7 @@ pub fn prepare(identifier: &str) -> Result<(), std::io::Error> {
                 io_err.to_string()
             );
         };
-        conn.write_all(b"\n")?;
+        let _ = conn.write_all(b"\n");
         std::process::exit(0);
     };
-    Ok(())
 }

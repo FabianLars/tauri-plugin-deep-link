@@ -6,8 +6,9 @@
 use tauri::Manager;
 
 fn main() {
-    // prepare() checks if it's a single instance and sends args otherwise.
-    tauri_plugin_deep_link::prepare("de.FabianLars.deep-link-test").unwrap();
+    // prepare() checks if it's a single instance and tries to send the args otherwise.
+    // It should always be the first line in your main function (with the exception of loggers or similar)
+    tauri_plugin_deep_link::prepare("de.FabianLars.deep-link-test");
     // It's expected to use the identifier from tauri.conf.json
     // Unfortuenetly getting it is pretty ugly without access to sth that implements `Manager`.
 
