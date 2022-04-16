@@ -11,7 +11,7 @@ license = "MIT"
 [dependencies]
 interprocess = { git = "https://github.com/kotauskas/interprocess", rev = "e9bd7c1eaadb73497e26842ec70faea7e554e8e9", default-features = false }
 log = "0.4.16"
-tauri = { version = "1.0.0-rc.6" }
+tauri-utils = { version = "1.0.0-rc.4" }
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.10.1"
