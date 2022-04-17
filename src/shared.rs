@@ -8,7 +8,7 @@ fn handle_error(connection: std::io::Result<LocalSocketStream>) -> Option<LocalS
         .ok()
 }
 
-pub(crate) fn listen<F: FnMut(String) + Send + 'static>(identifier: String, mut handler: F) {
+pub fn listen<F: FnMut(String) + Send + 'static>(identifier: String, mut handler: F) {
     std::thread::spawn(move || {
         let listener = LocalSocketListener::bind(identifier).expect("Can't create listener");
 
