@@ -17,7 +17,6 @@ fn main() {
       // This could be called right after prepare() but then you don't have access to tauri APIs
       let handle = app.handle();
       tauri_plugin_deep_link::register(
-        "de.FabianLars.deep-link-test",
         "my-scheme",
         move |request| {
           dbg!(&request);

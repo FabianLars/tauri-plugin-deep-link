@@ -2,14 +2,16 @@ use std::path::Path;
 
 use winreg::{enums::HKEY_CURRENT_USER, RegKey};
 
-use crate::shared::listen;
+use crate::{shared::listen, ID};
+
+// Consider adding a function to register without starting the listener.
+// Plugin needs linux and macOS support before making decisions.
 
 pub fn register<F: FnMut(String) + Send + 'static>(
-    identifier: &str,
     scheme: &str,
     handler: F,
 ) -> Result<(), std::io::Error> {
-    listen(identifier.to_string(), handler);
+    listen(handler);
 
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     let base = Path::new("Software").join("Classes").join(scheme);
@@ -19,7 +21,13 @@ pub fn register<F: FnMut(String) + Send + 'static>(
         .replace("\\\\?\\", "");
 
     let (key, _) = hkcu.create_subkey(&base)?;
-    key.set_value("", &identifier)?;
+    key.set_value(
+        "",
+        &format!(
+            "URL:{}",
+            ID.get().expect("register() called before prepare()")
+        ),
+    )?;
     key.set_value("URL Protocol", &"")?;
 
     let (icon, _) = hkcu.create_subkey(base.join("DefaultIcon"))?;
@@ -28,8 +36,6 @@ pub fn register<F: FnMut(String) + Send + 'static>(
     let (cmd, _) = hkcu.create_subkey(base.join("shell").join("open").join("command"))?;
 
     cmd.set_value("", &format!("{} \"%1\"", &exe))?;
-
-    println!("register end");
 
     Ok(())
 }

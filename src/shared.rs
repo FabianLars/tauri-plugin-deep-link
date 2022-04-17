@@ -2,15 +2,19 @@ use std::io::{BufRead, BufReader};
 
 use interprocess::local_socket::{LocalSocketListener, LocalSocketStream};
 
+use crate::ID;
+
 fn handle_error(connection: std::io::Result<LocalSocketStream>) -> Option<LocalSocketStream> {
     connection
-        .map_err(|error| eprintln!("Incoming connection failed: {}", error))
+        .map_err(|error| log::error!("Incoming connection failed: {}", error))
         .ok()
 }
 
-pub fn listen<F: FnMut(String) + Send + 'static>(identifier: String, mut handler: F) {
+pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) {
     std::thread::spawn(move || {
-        let listener = LocalSocketListener::bind(identifier).expect("Can't create listener");
+        let listener =
+            LocalSocketListener::bind(ID.get().expect("listen() called before prepare()").as_str())
+                .expect("Can't create listener");
 
         for conn in listener.incoming().filter_map(handle_error) {
             let mut conn = BufReader::new(conn);
