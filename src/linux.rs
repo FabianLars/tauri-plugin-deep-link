@@ -13,7 +13,7 @@ pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> 
     listen(handler);
 
     let mut target = data_dir()
-        .ok_or(Error::new(ErrorKind::NotFound, "data directory not found."))?
+        .ok_or_else(|| Error::new(ErrorKind::NotFound, "data directory not found."))?
         .join("applications");
 
     create_dir_all(&target)?;
@@ -23,7 +23,7 @@ pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> 
     let file_name = format!(
         "{}-handler.desktop",
         exe.file_name()
-            .ok_or(Error::new(
+            .ok_or_else(|| Error::new(
                 ErrorKind::NotFound,
                 "Couldn't get file name of curent executable.",
             ))?
@@ -31,6 +31,8 @@ pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> 
     );
 
     target.push(&file_name);
+
+    let mime_types = format!("x-scheme-handler/{};", scheme);
 
     let mut file = File::create(&target)?;
     file.write_all(
@@ -43,7 +45,7 @@ pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> 
                 .last()
                 .unwrap(),
             exec = exe.to_string_lossy(),
-            mime_types = format!("x-scheme-handler/{};", scheme)
+            mime_types = mime_types
         )
         .as_bytes(),
     )?;
@@ -63,14 +65,14 @@ pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> 
 
 pub fn unregister(_scheme: &str) -> Result<()> {
     let mut target =
-        data_dir().ok_or(Error::new(ErrorKind::NotFound, "data directory not found."))?;
+        data_dir().ok_or_else(|| Error::new(ErrorKind::NotFound, "data directory not found."))?;
 
     target.push("applications");
     target.push(format!(
         "{}-handler.desktop",
         tauri_utils::platform::current_exe()?
             .file_name()
-            .ok_or(Error::new(
+            .ok_or_else(|| Error::new(
                 ErrorKind::NotFound,
                 "Couldn't get file name of curent executable.",
             ))?
