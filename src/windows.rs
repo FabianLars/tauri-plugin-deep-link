@@ -2,7 +2,7 @@ use std::path::Path;
 
 use winreg::{enums::HKEY_CURRENT_USER, RegKey};
 
-use crate::{shared::listen, ID};
+use crate::ID;
 
 // Consider adding a function to register without starting the listener.
 // Plugin needs linux and macOS support before making decisions.
@@ -47,4 +47,42 @@ pub fn unregister(scheme: &str) -> Result<(), std::io::Error> {
     hkcu.delete_subkey_all(base)?;
 
     Ok(())
+}
+
+pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) {
+    std::thread::spawn(move || {
+        let listener =
+            LocalSocketListener::bind(ID.get().expect("listen() called before prepare()").as_str())
+                .expect("Can't create listener");
+
+        for conn in listener.incoming().filter_map(|c| {
+            c.map_err(|error| log::error!("Incoming connection failed: {}", error))
+                .ok()
+        }) {
+            let mut conn = BufReader::new(conn);
+            let mut buffer = String::new();
+            if let Err(io_err) = conn.read_line(&mut buffer) {
+                log::error!("Error reading incoming connection: {}", io_err.to_string());
+            };
+            buffer.pop();
+
+            handler(buffer);
+        }
+    });
+}
+
+pub fn prepare(identifier: &str) {
+    if let Ok(mut conn) = LocalSocketStream::connect(identifier) {
+        if let Err(io_err) = conn.write_all(std::env::args().nth(1).unwrap_or_default().as_bytes())
+        {
+            log::error!(
+                "Error sending message to primary instance: {}",
+                io_err.to_string()
+            );
+        };
+        let _ = conn.write_all(b"\n");
+        std::process::exit(0);
+    };
+    ID.set(identifier.to_string())
+        .expect("prepare() called more than once with different identifiers.");
 }
