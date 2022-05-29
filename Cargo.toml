@@ -11,7 +11,7 @@ license = "MIT"
 [dependencies]
 dirs-next = "2.0"
 log = "0.4.17"
-once_cell = "1.10"
+once_cell = "1.12"
 tauri-utils = { version = "1.0.0-rc.8" }
 
 [target.'cfg(windows)'.dependencies]
