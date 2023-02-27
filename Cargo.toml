@@ -19,4 +19,4 @@ interprocess = { git = "https://github.com/kotauskas/interprocess", rev = "e9bd7
 winreg = "0.11.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-objc = { package = "objc2", version = "0.3.0-beta.5" }
+objc2 = "0.3.0-beta.5"

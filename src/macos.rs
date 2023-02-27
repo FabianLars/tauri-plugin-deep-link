@@ -5,7 +5,7 @@ use std::{
     sync::Mutex,
 };
 
-use objc::{
+use objc2::{
     class, declare_class, msg_send, msg_send_id,
     rc::{Id, Owned, Shared},
     runtime::{NSObject, Object},
