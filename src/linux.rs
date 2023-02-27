@@ -44,7 +44,7 @@ pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> 
                 .split('.')
                 .last()
                 .unwrap(),
-            exec = exe.to_string_lossy(),
+            exec = std::env::var("APPIMAGE").unwrap_or_else(|_| exe.display().to_string()),
             mime_types = mime_types
         )
         .as_bytes(),
