@@ -84,7 +84,7 @@ pub fn unregister(_scheme: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) {
+pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) -> Result<()> {
     std::thread::spawn(move || {
         let addr = format!(
             "/tmp/{}-deep-link.sock",
@@ -110,6 +110,8 @@ pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) {
             }
         }
     });
+
+    Ok(())
 }
 
 pub fn prepare(identifier: &str) {

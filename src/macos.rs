@@ -21,16 +21,10 @@ static HANDLER: OnceCell<Mutex<Box<dyn FnMut(String) + Send + 'static>>> = OnceC
 pub fn register<F: Fn(String) + Send + 'static>(_scheme: &str, handler: F) -> Result<()> {
     listen(handler)?;
 
-    // TODO: Turn this into platform specific notes
-    log::warn!("register() on macOS only starts the listener. The schemes must be registered via Info.plist.");
-
     Ok(())
 }
 
 pub fn unregister(_scheme: &str) -> Result<()> {
-    // TODO: Turn this into platform specific notes
-    log::warn!("unregister() is no-op on macOS!");
-
     Ok(())
 }
 
@@ -181,9 +175,6 @@ pub fn listen<F: FnMut(String) + Send + 'static>(handler: F) -> Result<()> {
 }
 
 pub fn prepare(identifier: &str) {
-    // TODO: Turn this into platform specific notes
-    log::warn!("prepare() won't close the app on macOS.");
-
     ID.set(identifier.to_string())
         .expect("prepare() called more than once with different identifiers.");
 }

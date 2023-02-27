@@ -53,7 +53,7 @@ pub fn unregister(scheme: &str) -> Result<(), std::io::Error> {
     Ok(())
 }
 
-pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) {
+pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) -> Result<()> {
     std::thread::spawn(move || {
         let listener =
             LocalSocketListener::bind(ID.get().expect("listen() called before prepare()").as_str())
@@ -73,6 +73,8 @@ pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) {
             handler(buffer);
         }
     });
+
+    Ok(())
 }
 
 pub fn prepare(identifier: &str) {
