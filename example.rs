@@ -14,7 +14,8 @@ fn main() {
 
     tauri::Builder::default()
     .setup(|app| {
-      // This could be called right after prepare() but then you don't have access to tauri APIs
+      // If you need macOS support this must be called in .setup() !
+      // Otherwise this could be called right after prepare() but then you don't have access to tauri APIs
       let handle = app.handle();
       tauri_plugin_deep_link::register(
         "my-scheme",
