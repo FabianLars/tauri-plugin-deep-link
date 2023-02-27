@@ -18,7 +18,7 @@ use crate::ID;
 // If the Mutex turns out to be a problem, or FnMut turns out to be useless, we can remove the Mutex and turn FnMut into Fn
 static HANDLER: OnceCell<Mutex<Box<dyn FnMut(String) + Send + 'static>>> = OnceCell::new();
 
-pub fn register<F: Fn(String) + Send + 'static>(_scheme: &str, handler: F) -> Result<()> {
+pub fn register<F: FnMut(String) + Send + 'static>(_scheme: &str, handler: F) -> Result<()> {
     listen(handler)?;
 
     Ok(())

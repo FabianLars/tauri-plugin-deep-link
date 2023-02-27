@@ -1,5 +1,5 @@
 use std::{
-    io::{BufRead, BufReader, Write},
+    io::{BufRead, BufReader, Result, Write},
     path::Path,
 };
 
@@ -11,10 +11,7 @@ use crate::ID;
 // Consider adding a function to register without starting the listener.
 // Plugin needs linux and macOS support before making decisions.
 
-pub fn register<F: FnMut(String) + Send + 'static>(
-    scheme: &str,
-    handler: F,
-) -> Result<(), std::io::Error> {
+pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> Result<()> {
     listen(handler)?;
 
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
@@ -44,7 +41,7 @@ pub fn register<F: FnMut(String) + Send + 'static>(
     Ok(())
 }
 
-pub fn unregister(scheme: &str) -> Result<(), std::io::Error> {
+pub fn unregister(scheme: &str) -> Result<()> {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     let base = Path::new("Software").join("Classes").join(scheme);
 
