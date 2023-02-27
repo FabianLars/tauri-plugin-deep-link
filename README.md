@@ -4,7 +4,7 @@
 
 Temporary solution until https://github.com/tauri-apps/tauri/issues/323 lands.
 
-Depending on your use case, for example a `Login with Google` button, you may want to take a look at https://github.com/FabianLars/tauri-plugin-oauth instead. It uses a localhost server for the OAuth process instead of custom uri schemes because some oauth providers like the aforementioned Google require this setup. Personally, I think it's easier to use too.
+Depending on your use case, for example a `Login with Google` button, you may want to take a look at https://github.com/FabianLars/tauri-plugin-oauth instead. It uses a minimalistic localhost server for the OAuth process instead of custom uri schemes because some oauth providers, like the aforementioned Google, require this setup. Personally, I think it's easier to use too.
 
 Check out the [`example/`](https://github.com/FabianLars/tauri-plugin-deep-link/tree/main/example) dir for a minimal example. You must copy it into an actual tauri app first!
 
