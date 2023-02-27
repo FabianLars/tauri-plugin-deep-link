@@ -27,7 +27,8 @@ pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> 
                 ErrorKind::NotFound,
                 "Couldn't get file name of curent executable.",
             ))?
-            .to_string_lossy()
+            .display()
+            .to_string()
     );
 
     target.push(&file_name);
@@ -44,7 +45,7 @@ pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> 
                 .split('.')
                 .last()
                 .unwrap(),
-            exec = exe.to_string_lossy(),
+            exec = std::env::var("APPIMAGE").unwrap_or_else(|| exe.display().to_string()),
             mime_types = mime_types
         )
         .as_bytes(),
@@ -76,7 +77,8 @@ pub fn unregister(_scheme: &str) -> Result<()> {
                 ErrorKind::NotFound,
                 "Couldn't get file name of curent executable.",
             ))?
-            .to_string_lossy()
+            .display()
+            .to_string()
     ));
 
     remove_file(&target)?;

@@ -15,7 +15,8 @@ pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> 
     let base = Path::new("Software").join("Classes").join(scheme);
 
     let exe = tauri_utils::platform::current_exe()?
-        .to_string_lossy()
+        .display()
+        .to_string()
         .replace("\\\\?\\", "");
 
     let (key, _) = hkcu.create_subkey(&base)?;
