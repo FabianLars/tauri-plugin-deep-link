@@ -6,8 +6,7 @@ on:
       - 'v*.*.*'
 
 jobs:
-  changelog:
-    name: Generate changelog
+  release:
     runs-on: ubuntu-latest
     outputs:
       release_body: ${{ steps.git-cliff.outputs.content }}
