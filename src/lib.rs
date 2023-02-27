@@ -23,6 +23,8 @@ pub fn set_identifier(identifier: &str) -> Result<()> {
         .map_err(|_| ErrorKind::AlreadyExists.into())
 }
 
+// Consider adding a function to register without starting the listener.
+
 /// Registers a handler for the given scheme.
 ///
 /// ## Platform-specific:

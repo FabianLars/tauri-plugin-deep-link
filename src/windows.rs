@@ -8,9 +8,6 @@ use winreg::{enums::HKEY_CURRENT_USER, RegKey};
 
 use crate::ID;
 
-// Consider adding a function to register without starting the listener.
-// Plugin needs linux and macOS support before making decisions.
-
 pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> Result<()> {
     listen(handler)?;
 
