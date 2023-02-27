@@ -10,7 +10,7 @@ use dirs_next::data_dir;
 use crate::ID;
 
 pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> Result<()> {
-    listen(handler);
+    listen(handler)?;
 
     let mut target = data_dir()
         .ok_or_else(|| Error::new(ErrorKind::NotFound, "data directory not found."))?
@@ -84,7 +84,7 @@ pub fn unregister(_scheme: &str) -> Result<()> {
     Ok(())
 }
 
-pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) {
+pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) -> Result<()> {
     std::thread::spawn(move || {
         let addr = format!(
             "/tmp/{}-deep-link.sock",
@@ -110,6 +110,8 @@ pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) {
             }
         }
     });
+
+    Ok(())
 }
 
 pub fn prepare(identifier: &str) {

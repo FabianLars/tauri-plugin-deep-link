@@ -3,10 +3,12 @@ name = "tauri-plugin-deep-link"
 version = "0.0.0"
 authors = ["FabianLars <fabianlars@fabianlars.de>"]
 description = "A Tauri plugin for deep linking support"
+repository = "https://github.com/FabianLars/tauri-plugin-deep-link"
 edition = "2021"
-rust-version = "1.56"
-exclude = ["/examples"]
+rust-version = "1.64"
+exclude = ["/example", "/examples"]
 license = "MIT"
+readme = "MIT OR Apache-2.0"
 
 [dependencies]
 dirs-next = "2"
@@ -15,5 +17,8 @@ once_cell = "1"
 tauri-utils = { version = "1" }
 
 [target.'cfg(windows)'.dependencies]
-interprocess = { git = "https://github.com/kotauskas/interprocess", rev = "e9bd7c1eaadb73497e26842ec70faea7e554e8e9", default-features = false }
+interprocess = { version = "1.2", default-features = false }
 winreg = "0.11.0"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.3.0-beta.5"
