@@ -10,7 +10,7 @@ use dirs_next::data_dir;
 use crate::ID;
 
 pub fn register<F: FnMut(String) + Send + 'static>(scheme: &str, handler: F) -> Result<()> {
-    listen(handler);
+    listen(handler)?;
 
     let mut target = data_dir()
         .ok_or_else(|| Error::new(ErrorKind::NotFound, "data directory not found."))?

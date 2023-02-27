@@ -15,7 +15,7 @@ pub fn register<F: FnMut(String) + Send + 'static>(
     scheme: &str,
     handler: F,
 ) -> Result<(), std::io::Error> {
-    listen(handler);
+    listen(handler)?;
 
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     let base = Path::new("Software").join("Classes").join(scheme);
