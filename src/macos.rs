@@ -15,8 +15,10 @@ use once_cell::sync::OnceCell;
 
 use crate::ID;
 
+type THandler = OnceCell<Mutex<Box<dyn FnMut(String) + Send + 'static>>>;
+
 // If the Mutex turns out to be a problem, or FnMut turns out to be useless, we can remove the Mutex and turn FnMut into Fn
-static HANDLER: OnceCell<Mutex<Box<dyn FnMut(String) + Send + 'static>>> = OnceCell::new();
+static HANDLER: THandler = OnceCell::new();
 
 pub fn register<F: FnMut(String) + Send + 'static>(_scheme: &str, handler: F) -> Result<()> {
     listen(handler)?;
@@ -45,10 +47,10 @@ fn parse_url_event(event: *mut Object) -> Option<String> {
             return None;
         }
 
-        let subevent: *mut Object = msg_send![event, paramDescriptorForKeyword: 0x2d2d2d2d as u32];
+        let subevent: *mut Object = msg_send![event, paramDescriptorForKeyword: 0x2d2d2d2d_u32];
         let nsstring: *mut Object = msg_send![subevent, stringValue];
         let cstr: *const i8 = msg_send![nsstring, UTF8String];
-        if cstr != std::ptr::null() {
+        if !cstr.is_null() {
             Some(std::ffi::CStr::from_ptr(cstr).to_string_lossy().to_string())
         } else {
             None
@@ -88,7 +90,7 @@ fn secondary_handler(s: String) {
         ID.get()
             .expect("URL event received before prepare() was called")
     );
-    if let Ok(mut stream) = UnixStream::connect(&addr) {
+    if let Ok(mut stream) = UnixStream::connect(addr) {
         if let Err(io_err) = stream.write_all(s.as_bytes()) {
             log::error!(
                 "Error sending message to primary instance: {}",
