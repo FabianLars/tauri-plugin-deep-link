@@ -5,15 +5,17 @@
     <dict>
         <key>CFBundleURLTypes</key>
         <array>
-            <key>CFBundleURLName</key>
-            <!-- Obviously needs to be replaced with your app's bundle identifier -->
-            <string>de.fabianlars.deep-link-test</string>
-            <key>CFBundleURLSchemes</key>
-            <array>
-                <!-- register the myapp:// and myscheme:// schemes -->
-                <string>myapp</string>
-                <string>myscheme</string>
-            </array>
+            <dict>
+                <key>CFBundleURLName</key>
+                <!-- Obviously needs to be replaced with your app's bundle identifier -->
+                <string>de.fabianlars.deep-link-test</string>
+                <key>CFBundleURLSchemes</key>
+                <array>
+                    <!-- register the myapp:// and myscheme:// schemes -->
+                    <string>myapp</string>
+                    <string>myscheme</string>
+                </array>
+            </dict>
         </array>
     </dict>
 </plist>
