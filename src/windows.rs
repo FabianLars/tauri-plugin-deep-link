@@ -1,10 +1,18 @@
 use std::{
-    io::{BufRead, BufReader, Result, Write},
+    io::{BufRead, BufReader, Result, Write, Read},
     path::Path,
 };
 
 use interprocess::local_socket::{LocalSocketListener, LocalSocketStream};
 use winreg::{enums::HKEY_CURRENT_USER, RegKey};
+use windows::Win32::UI::{
+    WindowsAndMessaging,
+    Input::KeyboardAndMouse::{
+        self,
+        INPUT,
+        INPUT_KEYBOARD,
+        KEYBDINPUT,
+        INPUT_0}};
 
 use crate::ID;
 
@@ -54,10 +62,15 @@ pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) -> Result<()> {
             LocalSocketListener::bind(ID.get().expect("listen() called before prepare()").as_str())
                 .expect("Can't create listener");
 
-        for conn in listener.incoming().filter_map(|c| {
+        for mut conn in listener.incoming().filter_map(|c| {
             c.map_err(|error| log::error!("Incoming connection failed: {}", error))
                 .ok()
         }) {
+            // Send over our process ID. The second instance will need it to give us focus permissions.
+            let current_pid = std::process::id();
+            let _ = conn.write_all(&current_pid.to_ne_bytes());
+
+            // Listen for the launch arguments
             let mut conn = BufReader::new(conn);
             let mut buffer = String::new();
             if let Err(io_err) = conn.read_line(&mut buffer) {
@@ -74,6 +87,31 @@ pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) -> Result<()> {
 
 pub fn prepare(identifier: &str) {
     if let Ok(mut conn) = LocalSocketStream::connect(identifier) {
+        // We are the secondary instance.
+        // Prep to activate primary instance by allowing another process to take focus.
+
+        // Read the primary instance's process ID.
+        let mut pid_buffer: [u8; 4] = [0; 4];
+
+        if let Err(io_err) = conn.read_exact(&mut pid_buffer) {
+            log::error!(
+                "Error reading process ID from primary instance: {}",
+                io_err.to_string()
+            );
+        }
+        let main_instance_pid = u32::from_ne_bytes(pid_buffer);
+
+        // A workaround to allow AllowSetForegroundWindow to succeed - press a key.
+        // This was originally used by Chromium: https://bugs.chromium.org/p/chromium/issues/detail?id=837796
+        dummy_keypress();
+        
+        unsafe {
+            let success = WindowsAndMessaging::AllowSetForegroundWindow(main_instance_pid).as_bool();
+            if !success {
+                log::warn!("AllowSetForegroundWindow failed.");
+            }
+        }
+
         if let Err(io_err) = conn.write_all(std::env::args().nth(1).unwrap_or_default().as_bytes())
         {
             log::error!(
@@ -86,4 +124,38 @@ pub fn prepare(identifier: &str) {
     };
     ID.set(identifier.to_string())
         .expect("prepare() called more than once with different identifiers.");
+}
+
+/// Send a dummy keypress event so AllowSetForegroundWindow can succeed
+fn dummy_keypress() {
+    use windows::Win32::UI::Input::KeyboardAndMouse::{VIRTUAL_KEY, KEYBD_EVENT_FLAGS};
+    let keyboard_input_down = KEYBDINPUT {
+        wVk: VIRTUAL_KEY(0), // This doesn't correspond to any actual keyboard key, but should still function for the workaround.
+        dwExtraInfo: 0,
+        wScan: 0,
+        time: 0,
+        dwFlags: KEYBD_EVENT_FLAGS(0)
+    };
+
+    let mut keyboard_input_up = keyboard_input_down.clone();
+    keyboard_input_up.dwFlags = KEYBD_EVENT_FLAGS(0x0002); // KEYUP flag
+
+
+    let input_down_u: INPUT_0 = INPUT_0 { ki: keyboard_input_down };
+    let input_up_u: INPUT_0 = INPUT_0 { ki: keyboard_input_up };
+
+    let input_down = INPUT {
+        r#type: INPUT_KEYBOARD,
+        Anonymous: input_down_u
+    };
+
+    let input_up = INPUT {
+        r#type: INPUT_KEYBOARD,
+        Anonymous: input_up_u
+    };
+
+    let ipsize = std::mem::size_of::<INPUT>() as i32;
+    unsafe {
+        KeyboardAndMouse::SendInput(&[input_down, input_up], ipsize);
+    };
 }
