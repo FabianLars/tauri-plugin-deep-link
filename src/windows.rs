@@ -4,20 +4,11 @@ use std::{
 };
 
 use interprocess::local_socket::{LocalSocketListener, LocalSocketStream};
-use winreg::{enums::HKEY_CURRENT_USER, RegKey};
 use windows_sys::Win32::UI::{
-    WindowsAndMessaging::{
-        self,
-        ASFW_ANY
-    },
-    Input::KeyboardAndMouse::{
-        self,
-        INPUT,
-        INPUT_KEYBOARD,
-        KEYBDINPUT,
-        INPUT_0
-    }
+    Input::KeyboardAndMouse::{self, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT},
+    WindowsAndMessaging::{self, ASFW_ANY},
 };
+use winreg::{enums::HKEY_CURRENT_USER, RegKey};
 
 use crate::ID;
 
@@ -124,24 +115,28 @@ fn dummy_keypress() {
         dwExtraInfo: 0,
         wScan: 0,
         time: 0,
-        dwFlags: 0
+        dwFlags: 0,
     };
 
-    let mut keyboard_input_up = keyboard_input_down.clone();
+    let mut keyboard_input_up = keyboard_input_down;
     keyboard_input_up.dwFlags = 0x0002; // KEYUP flag
 
 
-    let input_down_u: INPUT_0 = INPUT_0 { ki: keyboard_input_down };
-    let input_up_u: INPUT_0 = INPUT_0 { ki: keyboard_input_up };
+    let input_down_u = INPUT_0 {
+        ki: keyboard_input_down
+    };
+    let input_up_u = INPUT_0 {
+        ki: keyboard_input_up
+    };
 
     let input_down = INPUT {
         r#type: INPUT_KEYBOARD,
-        Anonymous: input_down_u
+        Anonymous: input_down_u,
     };
 
     let input_up = INPUT {
         r#type: INPUT_KEYBOARD,
-        Anonymous: input_up_u
+        Anonymous: input_up_u,
     };
 
     let ipsize = std::mem::size_of::<INPUT>() as i32;
