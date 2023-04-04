@@ -5,8 +5,8 @@ use std::{
 
 use interprocess::local_socket::{LocalSocketListener, LocalSocketStream};
 use windows_sys::Win32::UI::{
-    Input::KeyboardAndMouse::{self, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT},
-    WindowsAndMessaging::{self, ASFW_ANY},
+    Input::KeyboardAndMouse::{SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT},
+    WindowsAndMessaging::{AllowSetForegroundWindow, ASFW_ANY},
 };
 use winreg::{enums::HKEY_CURRENT_USER, RegKey};
 
@@ -85,10 +85,10 @@ pub fn prepare(identifier: &str) {
         // A workaround to allow AllowSetForegroundWindow to succeed - press a key.
         // This was originally used by Chromium: https://bugs.chromium.org/p/chromium/issues/detail?id=837796
         dummy_keypress();
-        
+
         let primary_instance_pid = conn.peer_pid().unwrap_or(ASFW_ANY);
         unsafe {
-            let success = WindowsAndMessaging::AllowSetForegroundWindow(primary_instance_pid) != 0;
+            let success = AllowSetForegroundWindow(primary_instance_pid) != 0;
             if !success {
                 log::warn!("AllowSetForegroundWindow failed.");
             }
@@ -121,12 +121,11 @@ fn dummy_keypress() {
     let mut keyboard_input_up = keyboard_input_down;
     keyboard_input_up.dwFlags = 0x0002; // KEYUP flag
 
-
     let input_down_u = INPUT_0 {
-        ki: keyboard_input_down
+        ki: keyboard_input_down,
     };
     let input_up_u = INPUT_0 {
-        ki: keyboard_input_up
+        ki: keyboard_input_up,
     };
 
     let input_down = INPUT {
@@ -141,6 +140,6 @@ fn dummy_keypress() {
 
     let ipsize = std::mem::size_of::<INPUT>() as i32;
     unsafe {
-        KeyboardAndMouse::SendInput(2, [input_down, input_up].as_ptr(), ipsize);
+        SendInput(2, [input_down, input_up].as_ptr(), ipsize);
     };
 }
