@@ -1,12 +1,15 @@
 use std::{
-    io::{BufRead, BufReader, Result, Write, Read},
+    io::{BufRead, BufReader, Result, Write},
     path::Path,
 };
 
 use interprocess::local_socket::{LocalSocketListener, LocalSocketStream};
 use winreg::{enums::HKEY_CURRENT_USER, RegKey};
 use windows::Win32::UI::{
-    WindowsAndMessaging,
+    WindowsAndMessaging::{
+        self,
+        ASFW_ANY
+    },
     Input::KeyboardAndMouse::{
         self,
         INPUT,
@@ -62,14 +65,10 @@ pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) -> Result<()> {
             LocalSocketListener::bind(ID.get().expect("listen() called before prepare()").as_str())
                 .expect("Can't create listener");
 
-        for mut conn in listener.incoming().filter_map(|c| {
+        for conn in listener.incoming().filter_map(|c| {
             c.map_err(|error| log::error!("Incoming connection failed: {}", error))
                 .ok()
         }) {
-            // Send over our process ID. The second instance will need it to give us focus permissions.
-            let current_pid = std::process::id();
-            let _ = conn.write_all(&current_pid.to_ne_bytes());
-
             // Listen for the launch arguments
             let mut conn = BufReader::new(conn);
             let mut buffer = String::new();
@@ -90,23 +89,13 @@ pub fn prepare(identifier: &str) {
         // We are the secondary instance.
         // Prep to activate primary instance by allowing another process to take focus.
 
-        // Read the primary instance's process ID.
-        let mut pid_buffer: [u8; 4] = [0; 4];
-
-        if let Err(io_err) = conn.read_exact(&mut pid_buffer) {
-            log::error!(
-                "Error reading process ID from primary instance: {}",
-                io_err.to_string()
-            );
-        }
-        let main_instance_pid = u32::from_ne_bytes(pid_buffer);
-
         // A workaround to allow AllowSetForegroundWindow to succeed - press a key.
         // This was originally used by Chromium: https://bugs.chromium.org/p/chromium/issues/detail?id=837796
         dummy_keypress();
         
+        let primary_instance_pid = conn.peer_pid().unwrap_or(ASFW_ANY);
         unsafe {
-            let success = WindowsAndMessaging::AllowSetForegroundWindow(main_instance_pid).as_bool();
+            let success = WindowsAndMessaging::AllowSetForegroundWindow(primary_instance_pid).as_bool();
             if !success {
                 log::warn!("AllowSetForegroundWindow failed.");
             }
