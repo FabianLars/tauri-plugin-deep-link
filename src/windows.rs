@@ -5,7 +5,7 @@ use std::{
 
 use interprocess::local_socket::{LocalSocketListener, LocalSocketStream};
 use winreg::{enums::HKEY_CURRENT_USER, RegKey};
-use windows::Win32::UI::{
+use windows_sys::Win32::UI::{
     WindowsAndMessaging::{
         self,
         ASFW_ANY
@@ -15,7 +15,9 @@ use windows::Win32::UI::{
         INPUT,
         INPUT_KEYBOARD,
         KEYBDINPUT,
-        INPUT_0}};
+        INPUT_0
+    }
+};
 
 use crate::ID;
 
@@ -95,7 +97,7 @@ pub fn prepare(identifier: &str) {
         
         let primary_instance_pid = conn.peer_pid().unwrap_or(ASFW_ANY);
         unsafe {
-            let success = WindowsAndMessaging::AllowSetForegroundWindow(primary_instance_pid).as_bool();
+            let success = WindowsAndMessaging::AllowSetForegroundWindow(primary_instance_pid) != 0;
             if !success {
                 log::warn!("AllowSetForegroundWindow failed.");
             }
@@ -117,17 +119,16 @@ pub fn prepare(identifier: &str) {
 
 /// Send a dummy keypress event so AllowSetForegroundWindow can succeed
 fn dummy_keypress() {
-    use windows::Win32::UI::Input::KeyboardAndMouse::{VIRTUAL_KEY, KEYBD_EVENT_FLAGS};
     let keyboard_input_down = KEYBDINPUT {
-        wVk: VIRTUAL_KEY(0), // This doesn't correspond to any actual keyboard key, but should still function for the workaround.
+        wVk: 0, // This doesn't correspond to any actual keyboard key, but should still function for the workaround.
         dwExtraInfo: 0,
         wScan: 0,
         time: 0,
-        dwFlags: KEYBD_EVENT_FLAGS(0)
+        dwFlags: 0
     };
 
     let mut keyboard_input_up = keyboard_input_down.clone();
-    keyboard_input_up.dwFlags = KEYBD_EVENT_FLAGS(0x0002); // KEYUP flag
+    keyboard_input_up.dwFlags = 0x0002; // KEYUP flag
 
 
     let input_down_u: INPUT_0 = INPUT_0 { ki: keyboard_input_down };
@@ -145,6 +146,6 @@ fn dummy_keypress() {
 
     let ipsize = std::mem::size_of::<INPUT>() as i32;
     unsafe {
-        KeyboardAndMouse::SendInput(&[input_down, input_up], ipsize);
+        KeyboardAndMouse::SendInput(2, [input_down, input_up].as_ptr(), ipsize);
     };
 }
