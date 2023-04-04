@@ -1,6 +1,6 @@
 [package]
 name = "tauri-plugin-deep-link"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["FabianLars <fabianlars@fabianlars.de>"]
 description = "A Tauri plugin for deep linking support"
 repository = "https://github.com/FabianLars/tauri-plugin-deep-link"
