@@ -5,7 +5,7 @@ use std::{
     process::Command,
 };
 
-use dirs_next::data_dir;
+use dirs::data_dir;
 
 use crate::ID;
 
