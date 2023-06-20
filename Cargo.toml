@@ -26,4 +26,4 @@ windows-sys = { version = "0.48.0", features = [
 winreg = "0.50.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-objc2 = "0.3.0-beta.5"
+objc2 = "0.4.0"
