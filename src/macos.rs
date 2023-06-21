@@ -7,7 +7,8 @@ use std::{
 
 use objc2::{
     class, declare_class, msg_send, msg_send_id,
-    rc::{Id, Owned, Shared},
+    mutability::Immutable,
+    rc::Id,
     runtime::{NSObject, Object},
     sel, ClassType,
 };
@@ -63,6 +64,7 @@ declare_class!(
 
     unsafe impl ClassType for Handler {
         type Super = NSObject;
+        type Mutability = Immutable;
         const NAME: &'static str = "TauriPluginDeepLinkHandler";
     }
 
@@ -77,7 +79,7 @@ declare_class!(
 );
 
 impl Handler {
-    pub fn new() -> Id<Self, Owned> {
+    pub fn new() -> Id<Self> {
         let cls = Self::class();
         unsafe { msg_send_id![msg_send_id![cls, alloc], init] }
     }
@@ -137,7 +139,7 @@ pub fn listen<F: FnMut(String) + Send + 'static>(handler: F) -> Result<()> {
     }
 
     unsafe {
-        let event_manager: Id<Object, Shared> =
+        let event_manager: Id<Object> =
             msg_send_id![class!(NSAppleEventManager), sharedAppleEventManager];
 
         let handler = Handler::new();
