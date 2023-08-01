@@ -9,7 +9,7 @@ use objc2::{
     class, declare_class, msg_send, msg_send_id,
     mutability::Immutable,
     rc::Id,
-    runtime::{NSObject, Object},
+    runtime::{AnyObject, NSObject},
     sel, ClassType,
 };
 use once_cell::sync::OnceCell;
@@ -37,7 +37,7 @@ const EVENT_CLASS: u32 = 0x4755524c;
 const EVENT_GET_URL: u32 = 0x4755524c;
 
 // Adapted from https://github.com/mrmekon/fruitbasket/blob/aad14e400d710d1d46317c0d8c55ff742bfeaadd/src/osx.rs#L848
-fn parse_url_event(event: *mut Object) -> Option<String> {
+fn parse_url_event(event: *mut AnyObject) -> Option<String> {
     if event as u64 == 0u64 {
         return None;
     }
@@ -48,8 +48,8 @@ fn parse_url_event(event: *mut Object) -> Option<String> {
             return None;
         }
 
-        let subevent: *mut Object = msg_send![event, paramDescriptorForKeyword: 0x2d2d2d2d_u32];
-        let nsstring: *mut Object = msg_send![subevent, stringValue];
+        let subevent: *mut AnyObject = msg_send![event, paramDescriptorForKeyword: 0x2d2d2d2d_u32];
+        let nsstring: *mut AnyObject = msg_send![subevent, stringValue];
         let cstr: *const i8 = msg_send![nsstring, UTF8String];
         if !cstr.is_null() {
             Some(std::ffi::CStr::from_ptr(cstr).to_string_lossy().to_string())
@@ -70,7 +70,7 @@ declare_class!(
 
     unsafe impl Handler {
         #[method(handleEvent:withReplyEvent:)]
-        fn handle_event(&self, event: *mut Object, _replace: *const Object) {
+        fn handle_event(&self, event: *mut AnyObject, _replace: *const AnyObject) {
             let s = parse_url_event(event).unwrap_or_default();
             let mut cb = HANDLER.get().unwrap().lock().unwrap();
             cb(s);
@@ -139,7 +139,7 @@ pub fn listen<F: FnMut(String) + Send + 'static>(handler: F) -> Result<()> {
     }
 
     unsafe {
-        let event_manager: Id<Object> =
+        let event_manager: Id<AnyObject> =
             msg_send_id![class!(NSAppleEventManager), sharedAppleEventManager];
 
         let handler = Handler::new();
