@@ -9,7 +9,7 @@ use objc2::{
     class, declare_class, msg_send, msg_send_id,
     mutability::Immutable,
     rc::Id,
-    runtime::{NSObject, AnyObject},
+    runtime::{AnyObject, NSObject},
     sel, ClassType,
 };
 use once_cell::sync::OnceCell;
