@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2023-08-15
+
+**This plugin will be migrated to https://github.com/tauri-apps/plugins-workspace/.** Therefore, this will likely be the last release in this repository.
+
+### Miscellaneous Tasks
+
+- Update rust crate objc2 to 0.4.0 (#30)
+- Update rust crate objc2 to 0.4.1 (#31)
+
 ## [0.1.1] - 2023-04-04
 
 ### Bug Fixes
@@ -23,4 +32,3 @@ All notable changes to this project will be documented in this file.
 ### Features
 
 - Initial release
-
