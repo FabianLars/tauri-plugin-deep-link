@@ -23,7 +23,7 @@ windows-sys = { version = "0.52.0", features = [
     "Win32_UI_Input_KeyboardAndMouse",
     "Win32_UI_WindowsAndMessaging",
 ] }
-winreg = "0.50.0"
+winreg = "0.52.0"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.4.1"
