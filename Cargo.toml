@@ -13,7 +13,7 @@ include = ["src/**", "Cargo.toml", "LICENSE_*"]
 [dependencies]
 dirs = "5"
 log = "0.4"
-once_cell = "1"
+once_cell = "1.19.0"
 tauri-utils = { version = "1" }
 
 [target.'cfg(windows)'.dependencies]
