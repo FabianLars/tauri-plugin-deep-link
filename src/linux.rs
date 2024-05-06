@@ -101,7 +101,7 @@ pub fn listen<F: FnMut(String) + Send + 'static>(mut handler: F) -> Result<()> {
                         log::error!("Error reading incoming connection: {}", io_err.to_string());
                     };
 
-                    handler(dbg!(buffer));
+                    handler(buffer);
                 }
                 Err(err) => {
                     log::error!("Incoming connection failed: {}", err);
